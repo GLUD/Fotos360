@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>Vistas 360</title>
+	<meta name="description" content="" />
+	<meta name="author" content="Jorge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+</head>
+
+<body style="margin:0;">
+<div id="foto360-1" style="width:1000px;height:550px;"></div>
+<script>
+var canvas360 = {
+	create: function (id,urlImage){
+		var canvasParams = {
+			x:0,
+			y:0,
+			w:0,//width
+			p:2,//pasos
+			t:20,//tiempo
+			d:"Left",//direccion
+		};
+		var handle = function(e){canvas360.ctrlImage(e,canvasParams)};
+		document.addEventListener("keydown", handle, false);
+		var canvas=document.createElement("canvas");
+		canvas.id="canvas"+id;
+		var container=document.getElementById(id);
+		canvas.style.width=container.offsetWidth+"px";
+		canvas.style.height=container.offsetHeight+"px";
+		canvas.width=container.offsetWidth;
+		canvas.height=container.offsetWidth;
+		container.appendChild(canvas);
+		var context = canvas.getContext('2d');
+		var image = new Image();
+		image.onload = function() {		
+			canvas360.render(canvas,context,image,canvasParams);
+		};
+		image.src=urlImage;
+		return {
+			destroy : function (){
+				container.removeChild(canvas);
+				canvas=null;				
+				document.removeEventListener("keydown", handle, false);
+		}}
+	},
+	render : function (can,ctx,img,par){
+		var canW=can.width;
+		var canH=can.height;
+	    var	imgH=img.naturalHeight;
+		var imgW=img.naturalWidth;
+		ctx.clearRect(0,0,canW,canH);
+		if(par.w<=0){par.x=0;}
+		if(par.x+canW>=imgW){par.w=imgW-par.x;}else{par.w=canW;}
+		if(par.x<=-imgW){par.x=0;}
+		var cond=(par.x>=0)?true:false;
+		var img1X=(cond)?par.x:0;
+		var img1W=(cond)?par.w:canW+par.x;
+		var img1XX=(cond)?0:-par.x;
+		var img1WW=(cond)?par.w:canW+par.x;
+		ctx.drawImage(img,img1X,par.y,img1W,imgH,img1XX,0,img1WW,canH);
+		var img2X=(cond)?0:imgW+par.x;
+		var img2W=(cond)?canW-par.w:-par.x;
+		var img2XX=(cond)?par.w:0;
+		var img2WW=(cond)?canW-par.w:-par.x;
+		ctx.drawImage(img,img2X,par.y,img2W,imgH,img2XX,0,img2WW,canH);
+		if(par.d=="Right"){par.x+=par.p;}
+		else if(par.d=="Left"){par.x-=par.p;}
+		else if(par.d=="Pause"){par.x=par.x}
+		setTimeout(function(){
+			canvas360.render(can,ctx,img,par);
+		},par.t);
+	},
+	ctrlImage : function (e,cPar){
+		if (e.keyIdentifier=="Left"||e.keyIdentifier=="Right"){
+			cPar.d=e.keyIdentifier;
+		} else if(e.keyIdentifier=="Pause"||e.keyIdentifier=="U+0020"){//espacio U+%20 keyCode=32
+			cPar.d="Pause";
+		}
+	}
+}
+var elemento = canvas360.create("foto360-1","glud.jpg");
+</script>
+</body>
+</html>
